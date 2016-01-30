@@ -149,3 +149,31 @@ By importing them into your main file or even another module, you can use it lik
 
 This is the only exception to the rule that the first word is a command. In case of imported modules, the first and second words are commands.
 You can look up the available modules in the `lib` folder. Some of them uses `jsfn` to implement _native_ functions.
+
+## fun examples
+
+### simple http server responding with HTML page
+
+    seq (.)
+      .(import HTML)
+      .(require http)
+      .(.< server (.!> http createServer 
+        (lambda req res .(!> res end 
+          (HTML html
+            (HTML head
+              (HTML title "Test")
+              (HTML meta [charset "UTF-8"]))
+            (HTML body
+              (HTML b Its)
+              (HTML i working!)))))))
+      .(.!> server listen 8080
+        (lambda
+          .(log Connected!)))
+
+### fibonacci
+    
+    .(define fib 
+      .(fn n 
+        .(if .(lte n 2) 
+          1 
+          .(+ (Math.fib (- n 1)) (Math.fib (- n 2))))))
