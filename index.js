@@ -1,32 +1,13 @@
-var oldlog = console.log;
-// console.log = function(arg) {
-//   if (arg === undefined) {
-//     oldlog("undefined");
-//   } else if (arg.constructor === Array) {
-//     oldlog("[ " + arg.join(" ") + " ]");
-//   } else if (arg.type === "block") {
-//     oldlog(".(" + arg.cmd + " " + arg.args.join(" ") + ")");
-//   } else if (typeof arg === "string") {
-//     oldlog("\"" + arg + "\"");
-//   } else if (arg.type === "js") {
-//     oldlog("`" + arg.code + "`");
-//   } else {
-//     oldlog(arg);
-//   }
-// }
-
 Number.prototype.times = function(cb) {
   var i = -1;
   while (++i < this) cb(i);
   return +this;
 }
 
-var request = jxcore.utils.smartRequire(require);
-
-var read = request('read'),
-    pegjs = request('pegjs'),
+var read = require('read'),
+    pegjs = require('pegjs'),
     parser = pegjs.buildParser(require('fs').readFileSync('./grammar.pegjs', 'utf8')),
-    Promise = request('bluebird');
+    Promise = require('bluebird');
 
 function readPrompt(p) {
   read({ prompt: (p || ' >') }, function(err, str, isd) {
@@ -104,10 +85,6 @@ var BUILTIN = {
   },
   "require": function(p, res, module, name) {
     this[name || module] = require(module);
-    res(this);
-  },
-  "..require": function(p, res, module, name) {
-    this[name || module] = request(module);
     res(this);
   },
   "import": function(p, res, filename) {
