@@ -4,7 +4,7 @@ This is currently one big mess.
 
 ### how to run it
 
-Clone it, navigate into it and `node index` it.
+Clone it, navigate into it, `npm install` it and `node index` it.
 Now you are in a basic REPL!
 
 If you want to execute a file, use `node index filename`.
