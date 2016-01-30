@@ -89,7 +89,7 @@ var BUILTIN = {
   },
   "import": function(p, res, filename) {
     var self = this;
-    require('fs').readFile(filename + ".dstn", "utf8", function(err, content) {
+    require('fs').readFile("lib/" + filename + ".dstn", "utf8", function(err, content) {
       if (err) res(err);
       else parseTree(self, parser.parse(content)).then(res);
     });
@@ -294,7 +294,7 @@ var BUILTIN = {
     res(result);
   },
   "log": function(p, res, to) {
-    oldlog(to);
+    console.log(to);
     res(to);
   },
   "print": function(p, res) {

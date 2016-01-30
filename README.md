@@ -7,6 +7,8 @@ This is currently one big mess.
 Clone it, navigate into it and `node index` it.
 Now you are in a basic REPL!
 
+If you want to execute a file, use `node index filename`.
+
 To exit REPL type `quit.`.
 Ctrl-C won't work. Seriously. I hate you guys.
 
@@ -153,6 +155,7 @@ You can look up the available modules in the `lib` folder. Some of them uses `js
 ## fun examples
 
 ### simple http server responding with HTML page
+To run it execute `node index examples/Test.dstn`.
 
     seq (.)
       .(import HTML)
