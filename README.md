@@ -1,3 +1,80 @@
 # ALD (another lisp-like dialect)
 
 This is currently one big mess.
+
+### how to run it
+
+Clone it, navigate into it and `node index` it.
+Now you are in a basic REPL!
+
+To exit REPL type `quit.`.
+Ctrl-C won't work. Seriously. I hate you guys.
+
+## syntax
+
+This is the basic syntax.
+
+    (command argument1 argument2 argumentn...)
+
+Every command has to return something (even if its `undefined`). Also, every command is asynchronous, so the program will wait for every nested command to execute first.
+The top most command must not be wrapped in parentheses.
+
+Example:
+    
+    > return (+ 2 2).
+    4
+
+When using REPL, you must end your command with a dot to indicate the end of it. If you press enter without dot at the end, REPL will wait for the next line.
+If you create multiline command and want to discard it, just create new line and write `!`.
+
+Nested commands (like `return (+ 2 (- 6 3))`) will be evaluated before their parents. So the previous example will evaluate like this:
+
+    return (+ 2 (- 6 3))
+    return (+ 2 3)
+    return 5
+    5
+
+### argument types
+
+
+#### block
+This is a block. It won't be executed immediately, only on explicit command call.
+
+    .(command argument1 argument2 argumentn...)
+
+#### list
+This is a native array.
+
+    [argument1 argument2 argumentn...]
+
+#### string
+
+    "string with whitespaces and single 'quotes'"
+    'string with whitespaces and double "quotes"'
+    string-without-whitespaces
+
+#### number
+
+    16
+    26,236
+
+#### javascript native code
+Some native functions can take an argument which is an javascript code.
+
+    `javascript code`
+
+## builtin commands
+
+__important things to know__
+
+Every command has its own `this`-ish scope that inherits from parent (until specifically said it doesn't). Some commands can change the current _scope_, some commands operate on current _scope_.
+
+#### with
+Executes blocks simultaneously with specified scope. You probably shouldn't use it. Better use `seq`.
+
+    with scope blocks...
+
+#### seq
+Executes blocks sequentially with specified scope.
+
+    seq scope blocks...
