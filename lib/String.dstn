@@ -1,0 +1,3 @@
+module String
+  .(define split .(jsfn del str `res(str.split(del))`))
+  .(define ? .(jsfn str `res(typeof str === "string")`))

@@ -1,0 +1,7 @@
+seq (.)
+  .(import Math)
+  .(print Enter a number between 56 and "78.")
+  .(if .(Math between 55 79 (readline))
+    "YOU WON"
+    "YOU LOST")
+

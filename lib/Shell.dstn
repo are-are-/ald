@@ -1,0 +1,3 @@
+module Shell
+  .(define .cwd .(jsfn `res(process.cwd())`))
+  .(define .cd .(jsfn dir `process.chdir(dir); res(process.cwd())`))

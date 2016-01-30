@@ -1,0 +1,13 @@
+module Math
+  .(define fib 
+    .(fn n 
+      .(if .(lte n 2) 
+        1 
+        .(+ (Math.fib (- n 1)) (Math.fib (- n 2)))
+      )
+    )
+  )
+  .(define even? .(jsfn number `res(number % 2 === 0 ? 1 : 0)`))
+  .(define between
+    .(fn m n x
+      .(and (gt x m) (lt x n))))

@@ -1,0 +1,14 @@
+{
+  "name": "ald",
+  "version": "0.0.1",
+  "description": "another lisp-like dialect",
+  "main": "index.js",
+  "directories": {
+    "example": "examples"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Are Wojciechowski <are1000@protonmail.ch>",
+  "license": "ISC"
+}

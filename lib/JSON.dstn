@@ -1,0 +1,2 @@
+module JSON
+  .(define parse .(jsfn str `res(JSON.parse(str))`))

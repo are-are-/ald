@@ -1,0 +1,15 @@
+seq (.)
+  .(import HTML)
+  .(require http)
+  .(.< server (.!> http createServer 
+    (lambda req res .(!> res end 
+      (HTML html
+        (HTML head
+          (HTML title "Test")
+          (HTML meta [charset "UTF-8"]))
+        (HTML body
+          (HTML b Its)
+          (HTML i working!)))))))
+  .(.!> server listen 8080
+    (lambda
+      .(log Connected!)))

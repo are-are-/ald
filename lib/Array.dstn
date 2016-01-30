@@ -1,0 +1,46 @@
+module Array
+  .(define head .(jsfn arr `res(arr[0])`))
+  .(define tail .(jsfn arr `res(arr.slice(1))`))
+  .(define last .(jsfn arr `res(arr[arr.length-1])`))
+  .(define map .(jsfn arg arr block `
+    var self = this;
+    var parr = arr.map(function(el, i) {
+
+      var ntree = replaceInTree(block, [ arg+"i", arg ], [ i, el ]);
+      return p(self, ntree, BUILTIN);
+    });
+
+    Promise.all(parr).then(res);
+ `))
+ .(define range .(jsfn start end `
+    var foo = [];
+    for (var i = start; i <= end; i++) {
+      foo.push(i);
+    }
+    res(foo);
+  `))
+  .(define times .(fn n block .(
+    map (range 0 (- n 1)) block
+  )))
+  .(define length .(jsfn arr `
+    res(arr.length)
+  `))
+  .(define join .(jsfn delimiter arr `
+    res(arr.join(delimiter))
+  `))
+  .(define ? .(jsfn arr `
+    res(arr.constructor === Array ? 1 : 0)
+  `))
+  .(define new .(jsfn `
+    res([])
+  `))
+  .(define push .(jsfn arr val `
+    res(arr.push(val))
+  `))
+  .(define filter .(jsfn arg arr block fn `
+    var self = this;
+    var parr = Promise.filter(arr, function(element, index, length) {
+      var ntree = replaceInTree(block, [ arg+"i", arg ], [ index, element ]);
+      return p(self, ntree, BUILTIN);
+    }).then(res);
+  `))

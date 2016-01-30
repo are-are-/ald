@@ -1,0 +1,2 @@
+module File
+  .(define read .(jsfn `Promise.promisify(require('fs').readFile).apply(null, Array.prototype.slice.call(arguments).slice(2)).then(res) `))
