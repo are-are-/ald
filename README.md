@@ -69,12 +69,83 @@ __important things to know__
 
 Every command has its own `this`-ish scope that inherits from parent (until specifically said it doesn't). Some commands can change the current _scope_, some commands operate on current _scope_.
 
+#### +
+Adds arguments. If all of arguments are numbers, it will return number. If one of the arguments is a string, it will concatenate all arguments and return string.
+
+    + arguments...
+
+#### - 
+Subtracts arguments. If one of the arguments is not a number, scary things will happen.
+
+    - arguments...
+
 #### with
 Executes blocks simultaneously with specified scope. You probably shouldn't use it. Better use `seq`.
+Returns an array with results of every block.
 
     with scope blocks...
 
 #### seq
 Executes blocks sequentially with specified scope.
+Returns an array with results of every block.
 
     seq scope blocks...
+
+#### dowith
+Like `with` but returns only the result of last block.
+
+    dowith scope blocks...
+
+#### doseq
+Like `seq` but returns only the result of last block.
+
+    doseq scope blocks...
+
+#### require
+Requires a native node.js module and saves it as `name` into the scope.
+If name is not specified, saves it as `module`.
+
+    require module [name]
+
+#### import
+Imports `.ald` file.
+
+    import module
+
+#### return
+Returns first argument.
+
+    return argument
+
+#### after
+Returns first argument after `delay` milliseconds.
+
+    after delay argument
+
+#### readline
+Reads line from stdin and returns string. You can specify `prompt` that will appear before cursor.
+
+    readline prompt
+
+#### .
+Returns current scope.
+    
+    .
+
+#### TO-DO document more commands and categorize them
+
+## modules
+There are few _stdlib_ modules implemented in lib folder. You can import them with `import` command.
+
+Modules generally have a structure like this:
+
+    module ModuleName
+      .(define functionName block)
+      .(define functionName block)
+
+By importing them into your main file or even another module, you can use it like this:
+
+    ModuleName functionName arguments...
+
+This is the only exception to the rule that the first word is a command. In case of imported modules, the first and second words are commands.
+You can look up the available modules in the `lib` folder. Some of them uses `jsfn` to implement _native_ functions.

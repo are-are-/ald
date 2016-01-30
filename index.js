@@ -57,7 +57,7 @@ var BUILTIN = {
 
     Promise.all(pblocks).then(res);
   },
-  "do": function(p, res) {
+  "dowith": function(p, res) {
     var blocks = Array.prototype.slice.call(arguments).slice(2);
     var self = this;
     var pblocks = blocks.map(function(block) {
