@@ -40,277 +40,20 @@ if (process.argv.length >= 3) {
 }
 
 var MEMORY = {};
-var BUILTIN = {
-   "with": function(p, res, scope) {
-    var blocks = Array.prototype.slice.call(arguments).slice(3);
-    var pblocks = blocks.map(function(block) {
-      return p(scope, block, BUILTIN);
-    });
+var BUILTIN = require('./stdlib.js');
 
-    Promise.all(pblocks).then(res);
-  },
-  "using": function(p, res, scope) {
-    var blocks = Array.prototype.slice.call(arguments).slice(3);
-    var pblocks = blocks.map(function(block) {
-      return p(scope, block, scope);
-    });
+BUILTIN.import = function(p, res) {
+  var filename = BUILTIN._assureArg(arguments, "2", "string", function() {
+    raise(res, "import", typeError(res, "seq", "first", "string"));
+  });
 
-    Promise.all(pblocks).then(res);
-  },
-  "dowith": function(p, res) {
-    var blocks = Array.prototype.slice.call(arguments).slice(2);
-    var self = this;
-    var pblocks = blocks.map(function(block) {
-      return p(self, block, BUILTIN);
-    });
-
-    Promise.all(pblocks).then(function(result) {
-      res(result[result.length-1]);
-    });
-  },
-  "doseq": function(p, res) {
-    var blocks = Array.prototype.slice.call(arguments).slice(2);
-
-    var self = this;
-    res(Promise.reduce(blocks, function(previous, current) {
-      return p(self, current, BUILTIN);
-    }, {}));
-  },
-  "seq": function(p, res, scope) {
-    var blocks = Array.prototype.slice.call(arguments).slice(3);
-
-    res(Promise.reduce(blocks, function(previous, current) {
-      return p(scope, current, BUILTIN);
-    }, {}));
-  },
-  "require": function(p, res, module, name) {
-    this[name || module] = require(module);
-    res(this);
-  },
-  "import": function(p, res, filename) {
-    var self = this;
-    require('fs').readFile("lib/" + filename + ".dstn", "utf8", function(err, content) {
-      if (err) res(err);
-      else parseTree(self, parser.parse(content)).then(res);
-    });
-  },
-  "return": function(p, res, arg) {
-    res(arg);
-  },
-  "after": function(p, res, timeout, arg) {
-    var args = arguments;
-    setTimeout(function() {
-      res(arg);
-    }, timeout);
-  },
-  "set": function(p, res, key, value) {
-    MEMORY[key] = value;
-    res(value);
-  },
-  "get": function(p, res, key) {
-    res(MEMORY[key]);
-  },
-  "del": function(p, res, key) {
-    delete MEMORY[key];
-    res();
-  },
-  "readline": function(p, res, prompt) {
-    read({ prompt: prompt }, function(err, str, isd) {
-      res(str);
-    });
-  },
-  "reduce": function(p, res) {
-    var blocks = Array.prototype.slice.call(arguments).slice(2);
-
-   res(Promise.reduce(blocks, function(previous, current) {
-      return p(previous, current, BUILTIN);
-    }, {}));
-  },
-  "module": function(p, res, name) {
-    var blocks = Array.prototype.slice.call(arguments).slice(3);
-    var namespace = {};
-
-   Promise.reduce(blocks, function(previous, current) {
-      return p(previous, current, BUILTIN);
-    }, {}).then(function(result) {
-      Object.keys(result).forEach(function(key) {
-        namespace[key] = result[key];
-      });
-      BUILTIN[name] = namespace;
-      res(namespace);
-    });
-  },
-  "define": function(p, res, name, block) {
-    var self = this;
-    p(self, block, BUILTIN).then(function(fun) {
-      self[name] = fun;
-      res(self);
-    });
-  },
-  ".": function(p, res, name) {
-    if (name) res(this[name]);
-    else res(this);
-  },
-  ".!": function(p, res, name) {
-    var args = Array.prototype.slice.call(arguments).slice(3);
-    res(this[name].apply(this, args));
-  },
-  ".!>": function(p, res, obj, prop) {
-    var args = Array.prototype.slice.call(arguments).slice(4);
-    res(this[obj][prop].apply(this[obj], args));
-  },
-  ".?": function(p, res, name) {
-    res(this[name]);
-  },
-  "new": function(p, res, name) {
-    var args = Array.prototype.slice.call(arguments).slice(3);
-    res(new (this[name].bind.apply(this[name], args)));
-  },
-  "$$": function(p, res) {
-    res(this.$);
-  },
-  ".>": function(p, res, prop) {
-    res(this[prop]);
-  },
-  ".<": function(p, res, prop, value) {
-    var self = this;
-    p(this, value, BUILTIN).then(function(val) {
-      self[prop] = val;
-      res(val);
-    });
-  },
-  ">": function(p, res, obj, prop) {
-    res(obj[prop]);
-  },
-  "<": function(p, res, obj, prop, val) {
-    obj[prop] = value;
-    res(obj);
-  },
-  "!>": function(p, res, obj, prop) {
-    var args = Array.prototype.slice.call(arguments).slice(4);
-    res(obj[prop].apply(obj, args));
-  },
-  "eq": function(p, res, val1, val2) {
-    res(val1 === val2 ? 1 : 0);
-  },
-  "lt": function(p, res, val1, val2) {
-    res(val1 < val2 ? 1 : 0);
-  },
-  "lte": function(p, res, val1, val2) {
-    res(val1 <= val2 ? 1 : 0);
-  },
-  "gt": function(p, res, val1, val2) {
-    res(val1 > val2 ? 1 : 0);
-  },
-  "gte": function(p, res, val1, val2) {
-    res(val1 >= val2 ? 1 : 0);
-  },
-  "and": function(p, res, val1, val2) {
-    res(val1 && val2 ? 1 : 0);
-  },
-  "or": function(p ,res, val1, val2) {
-    res(val1 || val2 ? 1 : 0)
-  },
-  "GLOBAL": function(p, res) {
-    res(BUILTIN);
-  },
-  "JS_GLOBAL": function(p, res) {
-    res(global);
-  },
-  "if": function(p, res, cond, yep, nope) {
-    var self = this;
-    p(this, cond, BUILTIN).then(function(result) {
-      if (result) p(self, yep, BUILTIN).then(res);
-      else p(self, nope, BUILTIN).then(res);
-    });
-  },
-  "lambda": function(p, res) {
-    var argv = Array.prototype.slice.call(arguments);
-    var args = argv.slice(2, -1);
-    var block = argv.slice(-1)[0];
-    var self = this;
-
-    res(function() {
-      var iarg = Array.prototype.slice.call(arguments);
-
-      if (iarg.length !== args.length) return;
-
-      var ntree = replaceInTree(block, args, iarg);
-
-      p(self, ntree, BUILTIN);
-    });
-  },
-  "fn": function(p, res) {
-    var argv = Array.prototype.slice.call(arguments);
-    var args = argv.slice(2, -1);
-    var block = argv.slice(-1)[0];
-
-    res(function(p, res2) {
-      var iarg = Array.prototype.slice.call(arguments).slice(2);
-
-      if (iarg.length !== args.length) return res2(new Error('Cannot execute function without matching arities.'))
-
-      var ntree = replaceInTree(block, args, iarg);
-
-      p(this, ntree, BUILTIN).then(res2);
-    });
-  },
-  "fn*": function(p, res, name) {
-    var argv = Array.prototype.slice.call(arguments);
-    var args = argv.slice(3, -1);
-    var block = argv.slice(-1)[0];
-
-    res(function(p, res2) {
-      var iarg = Array.prototype.slice.call(arguments).slice(2);
-
-      args.unshift(name);
-      iarg.unshift(Array.prototype.slice.call(arguments).slice(2));
-
-      var ntree = replaceInTree(block, args, iarg);
-
-      p(this, ntree, BUILTIN).then(res2);
-    });
-  },
-  "jsfn": function(p, res) {
-    var args = (['p', 'res']).concat(Array.prototype.slice.call(arguments).slice(2));
-    var js = args.slice(-1)[0];
-    args = args.slice(0, -1).join(", ");
-
-    var scope = this;
-    var code = "(function(" + args + "){ " + js.code + " })";
-    var result = eval(code);
-
-    res(result);
-  },
-  ".jsfn": function(p, res) {
-    var args = (['p', 'res']).concat(Array.prototype.slice.call(arguments).slice(2));
-    var js = args.slice(-1)[0];
-    args = args.slice(0, -1).join(", ");
-
-    var scope = this;
-    var code = "(function(" + args + "){ " + js.code + " }).bind(scope)";
-    var result = eval(code);
-
-    res(result);
-  },
-  "log": function(p, res, to) {
-    console.log(to);
-    res(to);
-  },
-  "print": function(p, res) {
-    console.log(Array.prototype.slice.call(arguments).slice(2).join(" "));
-    res();
-  },
-  "quit": function() {
-    process.exit(0);
-  },
-  "+": function(p, res) {
-    res(Array.prototype.slice.call(arguments).slice(2).reduce(function(prev, curr) { return prev + curr; }));
-  },
-  "-": function(p, res) {
-    res(Array.prototype.slice.call(arguments).slice(2).reduce(function(prev, curr) { return prev - curr; }));
-  }
-};
+  var scope = this;
+  
+  require('fs').readFile("lib/" + filename + ".ald", "utf8", function(err, content) {
+    if (err) BUILTIN._raise(res, "import", "Couldn't load file 'lib/" + filename + ".ald'.");
+    else parseTree(scope, parser.parse(content)).then(res);
+  });
+}
 
 var BUFFER = "";
 function parsePrompt(str) {
@@ -340,6 +83,9 @@ function parsePrompt(str) {
   var tree = parser.parse(command);
   parseTree(context, tree).then(function(result) {
     console.log(result);
+    if (repl) readPrompt();
+  }).catch(function(error) {
+    console.log(error);
     if (repl) readPrompt();
   });
 }
