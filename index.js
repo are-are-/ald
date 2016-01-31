@@ -51,7 +51,9 @@ BUILTIN.import = function(p, res) {
   
   require('fs').readFile("lib/" + filename + ".ald", "utf8", function(err, content) {
     if (err) BUILTIN._raise(res, "import", "Couldn't load file 'lib/" + filename + ".ald'.");
-    else parseTree(scope, parser.parse(content)).then(res);
+    else parseTree(scope, parser.parse(content)).then(res).catch(function(err) {
+      res(err);
+    });
   });
 }
 

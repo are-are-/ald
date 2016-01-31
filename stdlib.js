@@ -7,23 +7,22 @@ var Promise = require('bluebird');
 var lib = {};
 
 function queryArg(query, args) {
-	if (/[0-9]\.\./.test(query)) {
+	if (/^[0-9]\.\.$/.test(query)) {
 		var amount = parseInt(query.substr(0, 1));
 		return Array.prototype.slice.call(args).slice(amount);
-	} else if (/[0-9]/.test(query)) {
+	} else if (/^[0-9]$/.test(query)) {
 		var index = parseInt(query);
 		return args[index];
-	} else if (/\-[0-9]/.test(query)) {
+	} else if (/^\-[0-9]$/.test(query)) {
 		var index = parseInt(query);
-		return args.slice(index, index + 1);
-	} else if (/\-[0-9]\.\./.test(query)) {
+		return index === -1 ? Array.prototype.slice.call(args).slice(index)[0] : Array.prototype.slice.call(args).slice(index, index + 1)[0];
+	} else if (/^\-[0-9]\.\.$/.test(query)) {
 		var index = parseInt(query.substr(0, 2));
-		return args.slice(index);
-	} else if (/[0-9]\.\.\-[0-9]/.test(query)) {
+		return Array.prototype.slice.call(args).slice(index);
+	} else if (/^[0-9]\.\.\-[0-9]$/.test(query)) {
 		var index = parseInt(query.substr(0, 1));
 		var lastIndex = parseInt(query.substr(3, 2));
-
-		return args.slice(index, args.length + lastIndex);
+		return Array.prototype.slice.call(args).slice(index, args.length + lastIndex);
 	}
 }
 
@@ -73,7 +72,7 @@ function raise(res, name, message) {
 }
 
 function getError(name, message) {
-	throw new Error("(" + name + " scope blocks...): " + message);
+	throw new Error("(" + name + "): " + message);
 }
 
 function typeError(res, name, which, type, plural) {
@@ -149,13 +148,20 @@ lib.define = function(p, res) {
 }
 
 lib.jsfn = function(p, res) {
-	var arguments = assureArg(arguments, "2..-1", "list:string", typeError(res, "jsfn", "all but last", "string", true));
+	var args = assureArg(arguments, "2..-1", "list:string", typeError(res, "jsfn", "all but last", "string", true));
 	var jsblock = assureArg(arguments, "-1", "js", typeError(res, "jsfn", "last", "js"));
 
-	var code = "(function(" + arguments.join(", ") + "){ " + js.code + " })";
+  args.unshift("res");
+  args.unshift("p");
+
+	var code = "(function(" + args.join(", ") + "){ " + jsblock.code + " })";
 	var result = eval(code);
 
 	res(result); 
+}
+
+lib["eval"] = function(p, res, str) {
+  res(eval(str));
 }
 
 lib.pro = function(p, res) {
